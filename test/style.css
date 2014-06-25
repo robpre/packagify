@@ -1,0 +1,20 @@
+body {
+	background: #eee;
+}
+
+h1 {
+	display: block;
+	width: 100%;
+	margin-bottom: 2em;
+	text-align: center;
+}
+
+* {
+	font-family: 'Comic Sans MS';
+}
+
+p {
+	margin: 1em 0;
+}
+
+
