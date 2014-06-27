@@ -67,21 +67,37 @@ function resolveFile( URI ) {
 
 }
 
+function pipeline() {
+    var _line = arguments[0].length ? arguments[0] : Array.prototype.slice.call( arguments );
+
+    var start = new Stream.Duplex();
+
+    var end = _line.reduce(function( src, dest ) {
+        var 
+        src.
+    }, start);
+}
+
 module.exports = {
 
     pkg: function( file ) {
-        var dup = new Stream.Duplex();
-
         var folder = path.dirname( file );
 
-        dup._read = function( chunk, enc, next ) {
-            this.push( chunk );
-            next();
+        var d = new Stream.Duplex();
+
+        var process = [ scripts( folder ), styles( folder ) ];
+
+        var start = process[0];
+
+        d._read = function() {
+            this.push();
         };
 
-        return dup.pipe( scripts( folder ) )
-            .pipe( styles( folder ) )
-            .pipe( dup );
+        d._write = function( chunk, enc, next ) {
+            s.write( chunk );
+        };
+
+        return start.pipe( end );
     },
 
     pkgFile: function( file ) {
