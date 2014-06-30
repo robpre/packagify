@@ -6,6 +6,7 @@ var trumpet     = require('trumpet');
 var path        = require('path');
 var Stream      = require('readable-stream');
 var CleanCSS    = require('clean-css');
+var UglifyJS    = require('uglify-js');
 
 function styles( dir ) {
     var tr = trumpet();
@@ -22,7 +23,7 @@ function styles( dir ) {
             var ws = link.createWriteStream({
                 outer: true
             });
-            ws.write('<style>');
+            ws.write('<style type="text/css">');
 
             file
                 .on('end', function() {
@@ -58,7 +59,31 @@ function scripts( dir ) {
 
 // return a transform stream that will minify the piped content
 function mini( type, opts ) {
+    var types = {
+        script: function( chunk, enc, next ) {
+            var o = opts || {};
+            o.fromString = true;
+            this.push( UglifyJS.minify( chunk.toString(), o ).code );
+            next();
+        },
+        style: function( chunk, enc, next ) {
+            this.push( new CleanCSS( opts ).minify( chunk.toString() ) );
+            next();
+        }
+    };
 
+    var tr = trumpet();
+    var transform = new Stream.Transform();
+
+    transform._transform = types[ type ];
+
+    tr.selectAll( type, function( style ) {
+        style.createReadStream()
+            .pipe( transform )
+            .pipe( style.createWriteStream() );
+    });
+
+    return tr;
 }
 
 // discern if file is on disk or on a server, and return a stream
@@ -67,15 +92,48 @@ function resolveFile( URI ) {
 
 }
 
-function pipeline() {
-    var _line = arguments[0].length ? arguments[0] : Array.prototype.slice.call( arguments );
+// skinny through constructor
+function through() {
+    var t = new Stream.Transform();
+    t._____ = 0;
+    t._transform = function noop( chunk, enc, cb ) {
+        //console.log( 'i have a chunk in my noop (' + this._____++ +  '): ' + chunk.toString() );
+        this.push( chunk );
+        cb();
+    };
+    return t;
+}
 
-    var start = new Stream.Duplex();
+function pipeline( line ) {
+    var _line = line && line.length ? line : Array.prototype.slice.call( arguments );
+
+    var start = _line.splice(0, 1)[0] || through();
 
     var end = _line.reduce(function( src, dest ) {
-        var 
-        src.
+        return src.pipe( dest ).pipe( through() );
     }, start);
+
+    var wrapper = new Stream.Duplex();
+
+    wrapper._read = function() {
+        var cur, cont = true;
+        while( cont && (cur = end.read()) !== null ) {
+            //console.log( 'buffer: ' + cur );
+            cont = this.push( cur );
+        }
+    };
+
+    end.on('end', function() {
+        wrapper.push( null );
+    });
+
+    wrapper._write = function( data, enc, next ) {
+        //console.log( 'ive been written to' + data.toString() );
+        start.write( data );
+        next();
+    };
+
+    return wrapper;
 }
 
 module.exports = {
@@ -83,21 +141,13 @@ module.exports = {
     pkg: function( file ) {
         var folder = path.dirname( file );
 
-        var d = new Stream.Duplex();
+        /////////////////////////////////////////////////////////////////////////
+        // I think the mini streams should move to where the files are grabbed //
+        // we can get source maps and file paths working.                      //
+        /////////////////////////////////////////////////////////////////////////
+        var process = [ scripts( folder ), styles( folder ), mini( 'style' ), mini( 'script' ) ];
 
-        var process = [ scripts( folder ), styles( folder ) ];
-
-        var start = process[0];
-
-        d._read = function() {
-            this.push();
-        };
-
-        d._write = function( chunk, enc, next ) {
-            s.write( chunk );
-        };
-
-        return start.pipe( end );
+        return pipeline( );
     },
 
     pkgFile: function( file ) {
