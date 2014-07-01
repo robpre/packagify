@@ -94,13 +94,13 @@ function resolveFile( URI ) {
 
 // skinny through constructor
 function through() {
-    var t = new Stream.Transform();
-    t._____ = 0;
-    t._transform = function noop( chunk, enc, cb ) {
-        //console.log( 'i have a chunk in my noop (' + this._____++ +  '): ' + chunk.toString() );
-        this.push( chunk );
-        cb();
-    };
+    var t = new Stream.PassThrough();
+    // t.____ = ++number;
+    // t._transform = function noop( chunk, enc, cb ) {
+    //     this.____ === number && console.log( 'my chunk: ' + chunk.toString() );
+    //     this.push( chunk );
+    //     cb();
+    // };
     return t;
 }
 
@@ -110,21 +110,24 @@ function pipeline( line ) {
     var start = _line.splice(0, 1)[0] || through();
 
     var end = _line.reduce(function( src, dest ) {
-        return src.pipe( dest ).pipe( through() );
+        return dest ? src.pipe( dest ) : src;//.pipe( through() );
     }, start);
 
     var wrapper = new Stream.Duplex();
 
     wrapper._read = function() {
-        var cur, cont = true;
+        var cur,
+            reads = 0,
+            cont = true;
         while( cont && (cur = end.read()) !== null ) {
-            //console.log( 'buffer: ' + cur );
             cont = this.push( cur );
+            reads++;
         }
+        if( reads === 0 ) this.push('');
     };
 
-    end.on('end', function() {
-        wrapper.push( null );
+    end.on('readable', function() {
+        wrapper.read(0);
     });
 
     wrapper._write = function( data, enc, next ) {
@@ -138,8 +141,8 @@ function pipeline( line ) {
 
 module.exports = {
 
-    pkg: function( file ) {
-        var folder = path.dirname( file );
+    pkg: function( filePath ) {
+        var folder = path.dirname( filePath );
 
         /////////////////////////////////////////////////////////////////////////
         // I think the mini streams should move to where the files are grabbed //
@@ -147,7 +150,7 @@ module.exports = {
         /////////////////////////////////////////////////////////////////////////
         var process = [ scripts( folder ), styles( folder ), mini( 'style' ), mini( 'script' ) ];
 
-        return pipeline( );
+        return pipeline( process );
     },
 
     pkgFile: function( file ) {
