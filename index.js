@@ -7,7 +7,7 @@ var path        = require('path');
 var Stream      = require('readable-stream');
 var CleanCSS    = require('clean-css');
 var UglifyJS    = require('uglify-js');
-var ThroughPlex = require('./lib/throughplex');
+var ThroughPlex = require('./lib/throughplex/throughplex.js');
 
 function styles( dir ) {
     var tr = trumpet();
@@ -131,7 +131,7 @@ function pipeline( line ) {
 
     // pipe that incoming data off to the start of the pipeline
     wrapper.inStream.pipe( start );
-
+    
     // pipe the contents from the end of the pipeline through to the output
     end.pipe( wrapper.outStream );
 
