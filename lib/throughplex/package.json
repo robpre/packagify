@@ -1,0 +1,11 @@
+{
+  "name": "throughplex",
+  "version": "0.0.0",
+  "description": "Create a duplex stream which will have an instream and an outstream",
+  "main": "throughplex.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "GNU"
+}

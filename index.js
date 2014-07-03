@@ -7,7 +7,7 @@ var path        = require('path');
 var Stream      = require('readable-stream');
 var CleanCSS    = require('clean-css');
 var UglifyJS    = require('uglify-js');
-var util        = require('util');
+var ThroughPlex = require('./lib/throughplex');
 
 function styles( dir ) {
     var tr = trumpet();
@@ -117,47 +117,6 @@ function through() {
     // };
     // return t;
 }
-
-function ThroughPlex( opts ) {
-    if( !(this instanceof ThroughPlex) ) {
-        return new ThroughPlex( opts );
-    }
-
-    Stream.Duplex.call( this, opts );
-
-    this.inStream = through( 'read' );
-    this.outStream = through( 'write' );
-
-    var self = this;
-    this.outStream.on('end', function() {
-        self.push(null);
-    });
-}
-util.inherits( ThroughPlex, Stream.Duplex );
-
-ThroughPlex.prototype._write = function( chunk, enc, next ) {
-    this.inStream.write( chunk, enc, next );
-};
-
-ThroughPlex.prototype._read = function() {
-
-    var os = this.outStream;
-
-    var self = this;
-
-    function readable( size ) {
-        var curChunk;
-
-        while( (curChunk = os.read(size)) !== null ) {
-            if( !self.push( curChunk ) ) {
-                break;
-            }
-        }
-    }
-
-    os.removeListener( 'readable', readable );
-    os.once('readable', readable);
-};
 
 function pipeline( line ) {
     var _line = line && line.length ? line : Array.prototype.slice.call( arguments );
