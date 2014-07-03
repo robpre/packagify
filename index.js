@@ -81,7 +81,7 @@ function mini( type, opts ) {
 
     return tr;
 }
-
+// this just strips newlines atm..
 function stripWhiteSpace() {
     var t = new Stream.Transform();
 
@@ -93,6 +93,7 @@ function stripWhiteSpace() {
                 chunk[i] = 0;
             }
         }
+
         this.push( chunk );
         next();
     };
@@ -131,7 +132,7 @@ function pipeline( line ) {
 
     // pipe that incoming data off to the start of the pipeline
     wrapper.inStream.pipe( start );
-    
+
     // pipe the contents from the end of the pipeline through to the output
     end.pipe( wrapper.outStream );
 
@@ -146,14 +147,18 @@ function pipeline( line ) {
 
 module.exports = {
 
-    pkg: function( filePath ) {
+    pkg: function( filePath, options ) {
         var folder = path.dirname( filePath );
+
+        if( options  ) {
+
+        }
 
         /////////////////////////////////////////////////////////////////////////
         // I think the mini streams should move to where the files are grabbed //
         // we can get source maps and file paths working.                      //
         /////////////////////////////////////////////////////////////////////////
-        var process = [ scripts( folder ), styles( folder ), mini( 'style' ), mini( 'script' ) ];
+        var process = [ scripts( folder ), styles( folder ), mini( 'style' ), mini( 'script' ), stripWhiteSpace() ];
 
         return pipeline( process );
     },

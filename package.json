@@ -2,9 +2,14 @@
   "name": "packagify-html",
   "version": "0.0.0",
   "description": "Packagify your html!",
+  "homepage": "http://github.com:RpprRoger/packagify",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:RpprRoger/packagify.git"
   },
   "author": "Robert Preus-MacLaren",
   "license": "GPL",
