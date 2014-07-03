@@ -12,13 +12,13 @@ var util        = require('util');
 function styles( dir ) {
     var tr = trumpet();
 
-    tr.selectAll('link', function( link ) {
+    tr.selectAll('link[href]', function( link ) {
 
         var href = link.getAttribute('href');
         var type = link.getAttribute('type');
         var rel = link.getAttribute('rel');
 
-        if( href && ( rel === 'stylesheet' || type === 'text/css') ) {
+        if( rel === 'stylesheet' || type === 'text/css' ) {
             var file = fs.createReadStream( path.resolve( dir, href ) );
 
             var ws = link.createWriteStream({
@@ -107,7 +107,7 @@ function resolveFile( URI ) {
 }
 
 // skinny through constructor
-function through( i ) {
+function through() {
     return new Stream.PassThrough();
     // var t = new Stream.Transform();
     // t._transform = function noop( chunk, enc, cb ) {
@@ -127,6 +127,11 @@ function ThroughPlex( opts ) {
 
     this.inStream = through( 'read' );
     this.outStream = through( 'write' );
+
+    var self = this;
+    this.outStream.on('end', function() {
+        self.push(null);
+    });
 }
 util.inherits( ThroughPlex, Stream.Duplex );
 
@@ -148,19 +153,10 @@ ThroughPlex.prototype._read = function() {
                 break;
             }
         }
-
-        os.removeListener( 'end', end );
     }
 
-    function end() {
-        self.push( null );
-        console.log('pushjed null');
-        os.removeListener( 'readable', end );
-    }
-
+    os.removeListener( 'readable', readable );
     os.once('readable', readable);
-
-    os.once('end', end);
 };
 
 function pipeline( line ) {
@@ -174,17 +170,18 @@ function pipeline( line ) {
 
     var wrapper = new ThroughPlex();
 
-    start.on('finish', function() {console.log('\n===start finished===');});
-    start.on('end', function() {console.log('\n===start end===');});
-    wrapper.on('finish', function() {console.log('\n===wrapper finished===');});
-    wrapper.on('end', function() {console.log('\n===wrapper end===');});
-    end.on('end', function() {console.log('\n===end ended===');});
-    end.on('finish', function() {console.log('\n===end finish===');});
-
+    // pipe that incoming data off to the start of the pipeline
     wrapper.inStream.pipe( start );
 
+    // pipe the contents from the end of the pipeline through to the output
     end.pipe( wrapper.outStream );
 
+    // when the wrapper thinks we're finished, start pushing the end event through the stack
+    wrapper.on('finish', function() {
+        start.end();
+    });
+
+    // return the wrapper
     return wrapper;
 }
 
@@ -197,7 +194,7 @@ module.exports = {
         // I think the mini streams should move to where the files are grabbed //
         // we can get source maps and file paths working.                      //
         /////////////////////////////////////////////////////////////////////////
-        var process = [ scripts( folder ), styles( folder )/*, mini( 'style' ), mini( 'script' )*/ ];
+        var process = [ scripts( folder ), styles( folder ), mini( 'style' ), mini( 'script' ) ];
 
         return pipeline( process );
     },
@@ -209,8 +206,6 @@ module.exports = {
     pkgFile: function( file ) {
 
         var con = fs.createReadStream( file );
-
-        var out = through();
 
         con.on('error', function( err ) {
             console.error(err);
