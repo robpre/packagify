@@ -1,6 +1,6 @@
 {
   "name": "packagify-html",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Packagify your html!",
   "homepage": "http://github.com:RpprRoger/packagify",
   "main": "index.js",
@@ -13,9 +13,6 @@
   },
   "author": "Robert Preus-MacLaren",
   "license": "GPL",
-  "devDependencies": {
-    "jsdom": "^0.11.0"
-  },
   "dependencies": {
     "clean-css": "^2.2.2",
     "readable-stream": "^1.0.27-1",

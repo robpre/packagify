@@ -8,6 +8,22 @@ var Stream      = require('readable-stream');
 var CleanCSS    = require('clean-css');
 var UglifyJS    = require('uglify-js');
 var ThroughPlex = require('./lib/throughplex/throughplex.js');
+var http        = require('http');
+
+var external    = /^(\/\/|http:|https:)/;
+var ArrProto    = Array.prototype;
+var slice       = ArrProto.slice;
+var concat      = ArrProto.concat;
+
+// discern if file is on disk or on a server, and return a stream
+// representation in either case
+function resolveFile( uri, folder ) {
+    if( uri.match( external ) ) {
+        return http.get(uri);
+    } else {
+        return fs.createReadStream( path.resolve( folder, uri ) );
+    }
+}
 
 function styles( dir ) {
     var tr = trumpet();
@@ -19,7 +35,7 @@ function styles( dir ) {
         var rel = link.getAttribute('rel');
 
         if( rel === 'stylesheet' || type === 'text/css' ) {
-            var file = fs.createReadStream( path.resolve( dir, href ) );
+            var file = resolveFile( href, dir );
 
             var ws = link.createWriteStream({
                 outer: true
@@ -45,8 +61,7 @@ function scripts( dir ) {
         var src = script.getAttribute('src');
             script.removeAttribute( 'src' );
 
-        fs
-            .createReadStream( path.resolve( dir, src ) )
+        resolveFile( src, dir )
             .pipe( script.createWriteStream() );
     });
 
@@ -101,12 +116,6 @@ function stripWhiteSpace() {
     return t;
 }
 
-// discern if file is on disk or on a server, and return a stream
-// representation in either case
-function resolveFile( URI ) {
-
-}
-
 // skinny through constructor
 function through() {
     return new Stream.PassThrough();
@@ -119,8 +128,13 @@ function through() {
     // return t;
 }
 
-function pipeline( line ) {
-    var _line = line && line.length ? line : Array.prototype.slice.call( arguments );
+/**
+ * Extract this into new module
+ * @param  {Array OR Stream} line... accepts either an array representing the stream, or Stream1, Strean2.. Stream n
+ * @return {ThroughPlex}      Wrapping Duplex which will be the single entry and exit way for the data
+ */
+function pipeline( /* streams.. */ ) {
+    var _line = concat.apply( ArrProto, slice.call( arguments ) );
 
     var start = _line.splice(0, 1)[0] || through();
 
@@ -158,13 +172,15 @@ module.exports = {
         // I think the mini streams should move to where the files are grabbed //
         // we can get source maps and file paths working.                      //
         /////////////////////////////////////////////////////////////////////////
-        var process = [ scripts( folder ), styles( folder ), mini( 'style' ), mini( 'script' ), stripWhiteSpace() ];
+        var process = [
+            scripts( folder ),
+            styles( folder ),
+            mini( 'style' ),
+            mini( 'script' ),
+            stripWhiteSpace()
+        ];
 
         return pipeline( process );
-    },
-
-    test: function( c, f) {
-        return c.pipe( scripts(path.dirname( f )) ).pipe( styles(path.dirname( f )));
     },
 
     pkgFile: function( file ) {
