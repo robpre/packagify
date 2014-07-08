@@ -9,11 +9,10 @@ Packagify html into a single http request
 
 ```js
 var packagify = require('packagify-html');
-var fs = require('fs');
 
 var filename = __dirname + '/test.html';
 
-fs.createReadStream( filename ).pipe( packagify.pkg( filename ) ).pipe( process.stdout );
+packagify.pkgFile( filename ).pipe( process.stdout );
 
 ```
 

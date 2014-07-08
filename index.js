@@ -26,6 +26,7 @@ function resolveFile( uri, folder ) {
     }
 }
 
+// TODO: get sourcemaps working
 // return a transform stream that will minify the piped content
 function mini( type, opts ) {
 
@@ -159,10 +160,6 @@ module.exports = {
 
         }
 
-        /////////////////////////////////////////////////////////////////////////
-        // I think the mini streams should move to where the files are grabbed //
-        // we can get source maps and file paths working.                      //
-        /////////////////////////////////////////////////////////////////////////
         var process = [
             scripts( folder ),
             styles( folder )
@@ -172,7 +169,6 @@ module.exports = {
     },
 
     pkgFile: function( file ) {
-
         var con = fs.createReadStream( file );
 
         con.on('error', function( err ) {

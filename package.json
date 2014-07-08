@@ -11,6 +11,9 @@
     "type": "git",
     "url": "git@github.com:RpprRoger/packagify.git"
   },
+  "bugs": {
+    "url": "https://github.com/rpprroger/packagify/issues"
+  },
   "author": "Robert Preus-MacLaren",
   "license": "GPL",
   "dependencies": {
