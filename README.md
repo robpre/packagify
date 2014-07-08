@@ -16,7 +16,7 @@ packagify.pkgFile( filename ).pipe( process.stdout );
 
 ```
 
-## or even as middle ware in a server.
+## or even as middleware in a server.
 
 ```js
 
@@ -30,7 +30,7 @@ var server = require('http').createServer(function( req, res ) {
 
 ```
 
-## coming soon!: from the terminal
+## coming soon: from the terminal
 
 ```bash
 cat somefile | ./node_modules/.bin/packigify-html > output.html
