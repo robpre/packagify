@@ -101,24 +101,10 @@ function scripts( dir, opts ) {
     return tr;
 }
 
-// this just strips newlines atm..
+// TODO:
+// maybe..
 function stripWhiteSpace() {
-    var t = new Stream.Transform();
 
-    t._transform = function( chunk, enc, next ) {
-        var i = 0;
-        for (; i < chunk.length; i++) {
-            // remove newlines
-            if( chunk[i] === 10 ) {
-                chunk[i] = 0;
-            }
-        }
-
-        this.push( chunk );
-        next();
-    };
-
-    return t;
 }
 
 // skinny through constructor
@@ -179,8 +165,7 @@ module.exports = {
         /////////////////////////////////////////////////////////////////////////
         var process = [
             scripts( folder ),
-            styles( folder ),
-           // stripWhiteSpace()
+            styles( folder )
         ];
 
         return pipeline( process );
