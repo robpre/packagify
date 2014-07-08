@@ -8,7 +8,7 @@ var Stream      = require('readable-stream');
 var CleanCSS    = require('clean-css');
 var UglifyJS    = require('uglify-js');
 var ThroughPlex = require('./lib/throughplex/throughplex.js');
-var http        = require('http');
+var request     = require('request');
 
 var external    = /^(\/\/|http:|https:)/;
 var ArrProto    = Array.prototype;
@@ -19,13 +19,44 @@ var concat      = ArrProto.concat;
 // representation in either case
 function resolveFile( uri, folder ) {
     if( uri.match( external ) ) {
-        return http.get(uri);
+        uri = uri.replace(/^\/\//, 'http://');
+        return request( uri );
     } else {
         return fs.createReadStream( path.resolve( folder, uri ) );
     }
 }
 
-function styles( dir ) {
+// return a transform stream that will minify the piped content
+function mini( type, opts ) {
+
+    var data = '';
+    var types = {
+        script: function( next ) {
+            var o = opts || {};
+            o.fromString = true;
+            this.push( UglifyJS.minify( data, o ).code );
+            next();
+        },
+        style: function( next ) {
+            this.push( new CleanCSS( opts ).minify( data ) );
+            next();
+        }
+    };
+
+    // some resources can get data in multiple chunks
+    var transform = new Stream.Transform();
+
+    transform._transform = function( chunk, enc, next ) {
+        data += chunk.toString();
+        next();
+    };
+
+    transform._flush = types[ type ];
+
+    return transform;
+}
+
+function styles( dir, opts ) {
     var tr = trumpet();
 
     tr.selectAll('link[href]', function( link ) {
@@ -40,9 +71,9 @@ function styles( dir ) {
             var ws = link.createWriteStream({
                 outer: true
             });
-
             ws.write('<style type="text/css">');
             file
+                .pipe( mini('style', opts ) )
                 .on('end', function() {
                     ws.end('</style>');
                 })
@@ -54,48 +85,22 @@ function styles( dir ) {
     return tr;
 }
 
-function scripts( dir ) {
+function scripts( dir, opts ) {
     var tr = trumpet();
 
     tr.selectAll('script[type="text/javascript"][src]', function( script ) {
         var src = script.getAttribute('src');
+            
             script.removeAttribute( 'src' );
 
         resolveFile( src, dir )
+            .pipe( mini( 'script', opts ) )
             .pipe( script.createWriteStream() );
     });
 
     return tr;
 }
 
-// return a transform stream that will minify the piped content
-function mini( type, opts ) {
-    var types = {
-        script: function( chunk, enc, next ) {
-            var o = opts || {};
-            o.fromString = true;
-            this.push( UglifyJS.minify( chunk.toString(), o ).code );
-            next();
-        },
-        style: function( chunk, enc, next ) {
-            this.push( new CleanCSS( opts ).minify( chunk.toString() ) );
-            next();
-        }
-    };
-
-    var tr = trumpet();
-    var transform = new Stream.Transform();
-
-    transform._transform = types[ type ];
-
-    tr.selectAll( type, function( element ) {
-        element.createReadStream()
-            .pipe( transform )
-            .pipe( element.createWriteStream() );
-    });
-
-    return tr;
-}
 // this just strips newlines atm..
 function stripWhiteSpace() {
     var t = new Stream.Transform();
@@ -175,9 +180,7 @@ module.exports = {
         var process = [
             scripts( folder ),
             styles( folder ),
-            mini( 'style' ),
-            mini( 'script' ),
-            stripWhiteSpace()
+           // stripWhiteSpace()
         ];
 
         return pipeline( process );
