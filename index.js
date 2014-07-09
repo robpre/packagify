@@ -157,7 +157,7 @@ module.exports = {
         var folder = path.dirname( filePath );
 
         if( options  ) {
-
+            
         }
 
         var process = [
@@ -180,8 +180,14 @@ module.exports = {
     },
 
     // this will save the file
-    pkgWrite: function() {},
+    pkgWrite: function( src, options, dest ) {
+        if( !dest ) {
+            dest = options;
+        }
+    },
 
     // this will take a src and pipe it to stdout 
-    pkgSync: function() {}
+    pkgSync: function( src, options ) {
+        return this.pkg( src, options ).pipe( process.stdout );
+    }
 };

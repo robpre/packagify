@@ -1,0 +1,22 @@
+{
+  "curly": true,
+  "eqeqeq": true,
+  "immed": true,
+  "latedef": true,
+  "newcap": true,
+  "noarg": true,
+  "sub": true,
+  "undef": true,
+  "strict": false,
+  "eqnull": true,
+  "trailing": true,
+  "browser": true,
+  "quotmark": true,
+  "node": true,
+  "globals": {
+    "console": true,
+    "require": true,
+    "module": true,
+    "require": true
+  }
+}

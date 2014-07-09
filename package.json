@@ -2,7 +2,7 @@
   "name": "packagify-html",
   "version": "0.0.2",
   "description": "Packagify your html!",
-  "homepage": "http://github.com:RpprRoger/packagify",
+  "homepage": "http://github.com/RpprRoger/packagify",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -14,6 +14,7 @@
   "bugs": {
     "url": "https://github.com/rpprroger/packagify/issues"
   },
+  "keywords": ["inline", "shrink", "minify", "html", "in-line", "uglify", "scrape", "webpage"],
   "author": "Robert Preus-MacLaren",
   "license": "GPL",
   "dependencies": {
