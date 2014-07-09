@@ -14,7 +14,7 @@
   "bugs": {
     "url": "https://github.com/rpprroger/packagify/issues"
   },
-  "keywords": ["inline", "shrink", "minify", "html", "in-line", "uglify", "scrape", "webpage"],
+  "keywords": ["inline", "shrink", "minify", "html", "in-line", "uglify", "scrape", "webpage", "package", "packigify", "packagify"],
   "author": "Robert Preus-MacLaren",
   "license": "GPL",
   "dependencies": {

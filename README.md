@@ -1,12 +1,12 @@
 packagify
 =========
 
-Packagify html into a single http request
+Packagify HTML into a single http request by inlining all the linked assets (CSS, JS).
 
-Packagify will attempt to turn resources and references to external stylesheets, scripts and images (coming soon).
+Packagify will attempt to turn resources and references to external stylesheets, scripts and images (images coming soon).
 
-Currently, this module attempts to guess at whether the resource is hosted externally, or locally on the machine,
-so it requires the location of the html document to trace dependencies from the local disk.
+The module attempts to fetch resource, whether that be off disk, or from a remote server, and then squash the resources using a css
+minification and a js uglifier.
 
 It will then attempt to stuff them inline, so for example:
 ```html
@@ -41,10 +41,17 @@ node test/test.js
 
 The methods exposed by packagify-html are.
 ```js
-pkg( inputfile, /* optional options */ ) // returns a stream which will parse the input and stream the output out
-pkgFile( inputfile, /* optional options */ ) // create a file readStream and pipe to the pkg method and return the stream
-pkgSync( inputfile, /* optional options */ ) // create read stream and pipe to stdout, returning the stream
-pkgWrite( inputfile, /* optional options */, output ) // create a read and write stream to the fs 
+// returns a stream which will parse the input and stream the output out
+pkg( inputfile, /* optional options */ )
+
+// create a file readStream and pipe to the pkg method and return the stream
+pkgFile( inputfile, /* optional options */ )
+
+// create read stream and pipe to stdout, returning the stream
+pkgSync( inputfile, /* optional options */ )
+
+// create a read and write stream to the fs 
+pkgWrite( inputfile, /* optional options */, output )
 ```
 Options are _always_ optional
 

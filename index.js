@@ -97,12 +97,46 @@ function scripts( dir, opts ) {
             
             script.removeAttribute( 'src' );
 
-        resolveFile( src, dir )
-            .pipe( mini( 'script', opts ) )
+        var file = resolveFile( src, dir );
+        // if opts is truthy, pipe the file through the uglifier
+        ( opts ? file.pipe( mini( 'script', opts ) ) :file )
             .pipe( script.createWriteStream() );
     });
 
     return tr;
+}
+
+function images( dir ) {
+    var tr = trumpet();
+
+    tr.selectAll('img[src]', function( img ) {
+        var imgSrc = img.getAttribute('src');
+
+        var file = resolveFile( imgSrc, dir );
+
+        var ws = img.createWriteStream({outer: true});
+
+        ws.write('<img src="data:image/png;base64,');
+        // this doesn't work.
+        file
+            .pipe( base64() )
+            .on('end', function() {ws.end('">');})
+            .pipe( ws, {end: false} );
+
+    });
+
+    return tr;
+}
+
+function base64() {
+    var t = new Stream.Transform();
+
+    t._transform = function( buffer, enc, next ) {
+        this.push( buffer.toString('base64') );
+        next();
+    };
+
+    return t;
 }
 
 // TODO:
@@ -199,6 +233,8 @@ module.exports = {
         if( opts.styles ) {
             parse.push( styles( folder, opts.minifyCss ) );
         }
+
+        parse.push( images( folder ) );
 
         return pipeline( parse );
     },
