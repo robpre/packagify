@@ -10,23 +10,23 @@ so it requires the location of the html document to trace dependencies from the 
 
 It will then attempt to stuff them inline, so for example:
 ```html
-&lt;script type="text/javascript" src="/path/to/file.js"&gt;&lt;/script&gt;
-&lt;script type="text/javascript" src="http://somehost/path/to/file.js"&gt;&lt;/script&gt;
+<script type="text/javascript" src="/path/to/file.js"></script>
+<script type="text/javascript" src="http://somehost/path/to/file.js"></script>
 ```
 would become
 ```html
-&lt;script type="text/javascript"&gt;alert('minified resources!');&lt;/script&gt;
-&lt;script type="text/javascript"&gt;(function() {alert('some other resources!');})(window);&lt;/script&gt;
+<script type="text/javascript">alert('minified resources!');</script>
+<script type="text/javascript">(function() {alert('some other resources!');})(window);</script>
 ```
 and
 ```html
-&lt;link rel="stylesheet" type="text/css" href="style.css"&gt;
-&lt;link rel="stylesheet" type="text/css" href="//otherhost/screen.css"&gt;
+<link rel="stylesheet" type="text/css" href="style.css">
+<link rel="stylesheet" type="text/css" href="//otherhost/screen.css">
 ```
 would become
 ```html
-&lt;style type="text/css"&gt;body:after{content:'i have also been shrunk';}*{font-family:'Comic Sans MS'}&lt;/style&gt;
-&lt;style type="text/css"&gt;ul{float:left;}*:before{content:'etc';}&lt;/style&gt;
+<style type="text/css">body:after{content:'i have also been shrunk';}*{font-family:'Comic Sans MS'}</style>
+<style type="text/css">ul{float:left;}*:before{content:'etc';}</style>
 ```
 
 # usage
