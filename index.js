@@ -30,6 +30,8 @@ function resolveFile( uri, folder ) {
 // return a transform stream that will minify the piped content
 function mini( type, opts ) {
 
+    if( opts && typeof opts !== 'object' ) opts = {};
+
     var data = '';
     var types = {
         script: function( next ) {
@@ -73,8 +75,9 @@ function styles( dir, opts ) {
                 outer: true
             });
             ws.write('<style type="text/css">');
-            file
-                .pipe( mini('style', opts ) )
+
+            // if opts is truthy, pipe the file through the minfication
+            ( opts ? file.pipe( mini('style', opts ) ) : file )
                 .on('end', function() {
                     ws.end('</style>');
                 })
@@ -151,24 +154,56 @@ function pipeline( /* streams.. */ ) {
     return wrapper;
 }
 
+// skinny shallow extend function
+function extend( src ) {
+    if( !src ) src = {};
+    var obs = slice.call( arguments, 1 );
+    var i = 0;
+    var len = obs.length;
+    var cur, key;
+
+    for (; i < len; i++) {
+        cur = obs[i];
+
+        if( !cur ) break;
+        for( key in cur ) {
+            if( cur.hasOwnProperty( key ) && typeof cur[key] !== undefined ) {
+                src[ key ] = cur[ key ];
+            }
+        }
+    }
+    return src;
+}
+
+var defaultOptions = {
+    scripts: true,
+    styles: true,
+    uglify: true,
+    minifyCss: true,
+    images: true
+};
+
 module.exports = {
 
     pkg: function( filePath, options ) {
         var folder = path.dirname( filePath );
 
-        if( options  ) {
-            
+        var opts = extend( {}, defaultOptions, options );
+
+        var parse = [];
+
+        if( opts.scripts ) {
+            parse.push( scripts( folder, opts.uglify ) );
+        }
+        
+        if( opts.styles ) {
+            parse.push( styles( folder, opts.minifyCss ) );
         }
 
-        var process = [
-            scripts( folder ),
-            styles( folder )
-        ];
-
-        return pipeline( process );
+        return pipeline( parse );
     },
 
-    pkgFile: function( file ) {
+    pkgFile: function( file, opts ) {
         var con = fs.createReadStream( file );
 
         con.on('error', function( err ) {
@@ -176,18 +211,18 @@ module.exports = {
             process.exit( 1 );
         });
 
-        return con.pipe( this.pkg( file ) );
+        return con.pipe( this.pkg( file, opts ) );
     },
 
     // this will save the file
-    pkgWrite: function( src, options, dest ) {
+    pkgWrite: function( src, opts, dest ) {
         if( !dest ) {
-            dest = options;
+            dest = opts;
         }
     },
 
     // this will take a src and pipe it to stdout 
-    pkgSync: function( src, options ) {
-        return this.pkg( src, options ).pipe( process.stdout );
+    pkgSync: function( src, opts ) {
+        return this.pkg( src, opts ).pipe( process.stdout );
     }
 };
