@@ -7,8 +7,7 @@ var path        = require('path');
 var Stream      = require('readable-stream');
 var CleanCSS    = require('clean-css');
 var UglifyJS    = require('uglify-js');
-var pipeline = require('./lib/pipeline/pipeline.js');
-
+var pipeline    = require('./lib/pipeline/pipeline.js');
 var request     = require('request');
 
 var external    = /^(\/\/|http:|https:)/;
@@ -23,7 +22,7 @@ function resolveFile( uri, folder ) {
         uri = uri.replace(/^\/\//, 'http://');
         return request( uri );
     } else {
-        return fs.createReadStream( path.resolve( folder, uri ) );
+        return fs.createReadStream( path.resolve( process.cwd(), folder, uri ) );
     }
 }
 
@@ -35,10 +34,10 @@ function base64() {
         this.push( buffer.toString('base64') );
         next();
     };
+    // perhaps we need to buffer the data up
+    // t._flush = function( done ) {
 
-    t._flush = function( done ) {
-
-    };
+    // };
 
     return t;
 }
@@ -198,7 +197,7 @@ var packagify = {
         }
 
         // not yet
-        // parse.push( images( folder ) );
+        parse.push( images( folder ) );
 
         return pipeline( parse );
     },

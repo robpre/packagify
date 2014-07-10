@@ -1,1 +1,1 @@
-packagify [input] [output]
+Usage: packagify [input] [output]
