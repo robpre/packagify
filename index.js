@@ -7,7 +7,8 @@ var path        = require('path');
 var Stream      = require('readable-stream');
 var CleanCSS    = require('clean-css');
 var UglifyJS    = require('uglify-js');
-var ThroughPlex = require('./lib/throughplex/throughplex.js');
+var pipeline = require('./lib/pipeline/pipeline.js');
+
 var request     = require('request');
 
 var external    = /^(\/\/|http:|https:)/;
@@ -24,6 +25,22 @@ function resolveFile( uri, folder ) {
     } else {
         return fs.createReadStream( path.resolve( folder, uri ) );
     }
+}
+
+function base64() {
+    var t = new Stream.Transform();
+    var data = '';
+
+    t._transform = function( buffer, enc, next ) {
+        this.push( buffer.toString('base64') );
+        next();
+    };
+
+    t._flush = function( done ) {
+
+    };
+
+    return t;
 }
 
 // TODO: get sourcemaps working
@@ -128,64 +145,10 @@ function images( dir ) {
     return tr;
 }
 
-function base64() {
-    var t = new Stream.Transform();
-
-    t._transform = function( buffer, enc, next ) {
-        this.push( buffer.toString('base64') );
-        next();
-    };
-
-    return t;
-}
-
 // TODO:
 // maybe..
 function stripWhiteSpace() {
 
-}
-
-// skinny through constructor
-function through() {
-    return new Stream.PassThrough();
-    // var t = new Stream.Transform();
-    // t._transform = function noop( chunk, enc, cb ) {
-    //     console.log( 'my chunk ' + i + ' : ' + chunk.toString() );
-    //     this.push( chunk );
-    //     cb();
-    // };
-    // return t;
-}
-
-/**
- * Extract this into new module
- * @param  {Array OR Stream} line... accepts either an array representing the stream, or Stream1, Strean2.. Stream n
- * @return {ThroughPlex}      Wrapping Duplex which will be the single entry and exit way for the data
- */
-function pipeline( /* streams.. */ ) {
-    var _line = concat.apply( ArrProto, slice.call( arguments ) );
-
-    var start = _line.splice(0, 1)[0] || through();
-
-    var end = _line.reduce(function( src, dest ) {
-        return src.pipe( dest );
-    }, start);
-
-    var wrapper = new ThroughPlex();
-
-    // pipe that incoming data off to the start of the pipeline
-    wrapper.inStream.pipe( start );
-
-    // pipe the contents from the end of the pipeline through to the output
-    end.pipe( wrapper.outStream );
-
-    // when the wrapper thinks we're finished, start pushing the end event through the stack
-    wrapper.on('finish', function() {
-        start.end();
-    });
-
-    // return the wrapper
-    return wrapper;
 }
 
 // skinny shallow extend function
@@ -217,7 +180,7 @@ var defaultOptions = {
     images: true
 };
 
-module.exports = {
+var packagify = {
 
     pkg: function( filePath, options ) {
         var folder = path.dirname( filePath );
@@ -234,7 +197,8 @@ module.exports = {
             parse.push( styles( folder, opts.minifyCss ) );
         }
 
-        parse.push( images( folder ) );
+        // not yet
+        // parse.push( images( folder ) );
 
         return pipeline( parse );
     },
@@ -254,11 +218,18 @@ module.exports = {
     pkgWrite: function( src, opts, dest ) {
         if( !dest ) {
             dest = opts;
+            opts = null;
         }
+
+        this.pkgFile( src, opts ).pipe( fs.createWriteStream( dest ) );
     },
 
     // this will take a src and pipe it to stdout 
     pkgSync: function( src, opts ) {
-        return this.pkg( src, opts ).pipe( process.stdout );
+        return this.pkgFile( src, opts ).pipe( process.stdout );
     }
 };
+
+module.exports = packagify;
+
+

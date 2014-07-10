@@ -1,8 +1,8 @@
 {
-  "name": "throughplex",
+  "name": "pipeline",
   "version": "0.0.0",
-  "description": "Create a duplex stream which will have an instream and an outstream",
-  "main": "throughplex.js",
+  "description": "Convert multiple streams into a single pipeline of data",
+  "main": "pipeline.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -11,5 +11,5 @@
     "email": "rpprroger@gmail.com",
     "url": "http://github.com/RpprRoger"
   },
-  "license": "GNU"
+  "license": "MIT"
 }
