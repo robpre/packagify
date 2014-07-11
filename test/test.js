@@ -2,4 +2,4 @@
 
 var packageHtml = require('../');
 
-packageHtml.pkgFile(__dirname + '/test.html').pipe( process.stdout );
+packageHtml.pkgFile(__dirname + '/index.html').pipe( process.stdout );

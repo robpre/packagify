@@ -28,16 +28,17 @@ function resolveFile( uri, folder ) {
 
 function base64() {
     var t = new Stream.Transform();
-    var data = '';
+    var buf = new Buffer(0);
 
     t._transform = function( buffer, enc, next ) {
-        this.push( buffer.toString('base64') );
+        buf = Buffer.concat( [buf, buffer] );
         next();
     };
     // perhaps we need to buffer the data up
-    // t._flush = function( done ) {
-
-    // };
+    t._flush = function( done ) {
+        this.push( buf.toString('base64') );
+        done();
+    };
 
     return t;
 }
@@ -131,7 +132,7 @@ function images( dir ) {
         var file = resolveFile( imgSrc, dir );
 
         var ws = img.createWriteStream({outer: true});
-
+        // we need to use the attributes from the old one
         ws.write('<img src="data:image/png;base64,');
         // this doesn't work.
         file

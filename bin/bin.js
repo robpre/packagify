@@ -32,7 +32,7 @@ if( args.v || args.version ) {
 	return console.log( require('../package.json').version );
 }
 
-if( !args._[0] && !args.i && !args.infile &&  ) {
+if( !args._[0] && !args.i && !args.infile && !args.e && !args.external ) {
 	return usage();
 }
 
@@ -45,7 +45,6 @@ var options = {
     minifyCss: true,
     images: true
 };
-
 
 var output;
 
