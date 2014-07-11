@@ -7,5 +7,7 @@
 
 		document.getElementsByTagName('body')[0].appendChild( p );
 	}
-
+	function uncl() {
+		console.log('uncalledcode');
+	}
 })(window);

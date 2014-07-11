@@ -54,6 +54,7 @@ function mini( type, opts ) {
         script: function( next ) {
             var o = opts || {};
             o.fromString = true;
+            //o.dead_code = true;
             this.push( UglifyJS.minify( data, o ).code );
             next();
         },
@@ -221,7 +222,7 @@ var packagify = {
             opts = null;
         }
 
-        this.pkgFile( src, opts ).pipe( fs.createWriteStream( dest ) );
+        this.pkgFile( src, opts ).pipe( fs.createWriteStream( path.resolve( process.cwd(), dest ) ) );
     },
 
     // this will take a src and pipe it to stdout 

@@ -3,26 +3,19 @@
 var subarg 	= require('subarg');
 var fs		= require('fs');
 var path 	= require('path');
+var utils	= require('./utils.js');//strip_, bool, inFile, outFile, input, output
 
-var args = subarg( process.argv.slice( 2 ) );
+var packagify = require('packagify-html');
 
 function usage() {
 	fs.createReadStream( __dirname + '/usage.txt' )
-		.pipe( process.stdout )
-		.on('end', function() {process.exit(1);});
+		.on('end', function() {process.exit(1);})
+		.pipe( process.stdout );
 }
 
-function input( stdin, filename ) {
-	if( !stdin.isTTY ) {
-		return process.stdin;
-	} else {
-		return fs.createReadStream( filename );
-	}
-}
+var args = subarg( process.argv.slice( 2 ) );
 
-function output( tty, filename ) {
-
-}
+console.log(  args );
 
 if( args._[0] === 'help' ||  args._[0] === 'h' || args.h || args.help ) {
 	return usage();
@@ -32,11 +25,12 @@ if( args.v || args.version ) {
 	return console.log( require('../package.json').version );
 }
 
-if( !args._[0] && !args.i && !args.infile && !args.e && !args.external ) {
+var inputFile = utils.inFile( args );
+var outputFile = utils.outFile( args );
+
+if( !inputFile ) {
 	return usage();
 }
-
-var inputFile = args.i || args.infile || args._[0];
 
 var options = {
     scripts: true,
@@ -46,12 +40,8 @@ var options = {
     images: true
 };
 
-var output;
+console.log( options );
 
-if( process.stdout.isTTY && ( args._.length > 1 || args.o || args.outfile ) ) {
-
-	output = fs.createWriteStream( args._)
-
-}
-
-console.log( args );
+// utils.input( process.stdin, inputFile )
+// 	.pipe( packagify.pkg( inputFile ) )
+// 	.pipe( process.stdout );
