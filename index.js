@@ -10,15 +10,16 @@ var UglifyJS    = require('uglify-js');
 var pipeline    = require('./lib/pipeline/pipeline.js');
 var request     = require('request');
 
-var external    = /^(\/\/|http:|https:)/;
+var externalReg = /^(\/\/|http:|https:)/;
 var ArrProto    = Array.prototype;
 var slice       = ArrProto.slice;
 var concat      = ArrProto.concat;
 
 // discern if file is on disk or on a server, and return a stream
 // representation in either case
-function resolveFile( uri, folder ) {
-    if( uri.match( external ) ) {
+function resolveFile( uri, folder, ext ) {
+    var res;
+    if( uri.match( externalReg ) || ext ) {
         uri = uri.replace(/^\/\//, 'http://');
         return request( uri );
     } else {
@@ -117,7 +118,7 @@ function scripts( dir, opts ) {
 
         var file = resolveFile( src, dir );
         // if opts is truthy, pipe the file through the uglifier
-        ( opts ? file.pipe( mini( 'script', opts ) ) :file )
+        ( opts ? file.pipe( mini( 'script', opts ) ) : file )
             .pipe( script.createWriteStream() );
     });
 
@@ -135,7 +136,7 @@ function images( dir ) {
         var ws = img.createWriteStream({outer: true});
         // we need to use the attributes from the old one
         ws.write('<img src="data:image/png;base64,');
-        // this doesn't work.
+
         file
             .pipe( base64() )
             .on('end', function() {ws.end('">');})
@@ -178,28 +179,30 @@ var defaultOptions = {
     styles: true,
     uglify: true,
     minifyCss: true,
-    images: true
+    images: true,
+    external: false
 };
 
 var packagify = {
 
     pkg: function( filePath, options ) {
-        var folder = path.dirname( filePath );
-
         var opts = extend( {}, defaultOptions, options );
+
+        var folder = path.dirname( filePath );
 
         var parse = [];
 
         if( opts.scripts ) {
-            parse.push( scripts( folder, opts.uglify ) );
+            parse.push( scripts( folder, opts.uglify, opts.external ) );
         }
         
         if( opts.styles ) {
-            parse.push( styles( folder, opts.minifyCss ) );
+            parse.push( styles( folder, opts.minifyCss, opts.external ) );
         }
 
-        // not yet
-        parse.push( images( folder ) );
+        if( opts.images ) {
+            parse.push( images( folder ), opts.external );
+        }
 
         return pipeline( parse );
     },

@@ -1,5 +1,12 @@
-Usage: packagify [input file]
+Usage: packagify [-s] [-c] [-g] [-d] [-e] [-u [OPTIONS]] [-m [OPTIONS]] [-o OUTPUTFILE] INPUTFILE
+Packagify HTML into a single http request by inlining all the linked assets
+Using INPUTFILE or standard input and writing to OUTPUTFILE or standard out
 
--u/--uglify true/false
+	-d, --default			Trigger default behaviour ( the same as -scgum )
 
-
+	-s, --scripts			Scrape resources
+	-c, --styles
+	-g, --images
+	-u, --uglify [options]
+	-m, --minify [options]
+	-o, --outfile 

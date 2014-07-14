@@ -3,7 +3,7 @@ packagify
 
 Packagify HTML into a single http request by inlining all the linked assets (CSS, JS).
 
-Packagify will attempt to turn resources and references to external stylesheets, scripts and images (images coming soon).
+Packagify will attempt to turn resources and references to external stylesheets, scripts and images.
 
 The module attempts to fetch resource, whether that be off disk, or from a remote server, and then squash the resources using a css
 minification and a js uglifier.
@@ -105,11 +105,12 @@ Options can be passed to the pkg methods
 ```js
 // packagify-html opts
 var opts = {
-	scripts: true/false, // (default: true)
-	styles: true/false, // (default: true)
-	uglify: true/false, // (default: true)
-	minifyCss: true/false, // (default: true)
-	images: true/false, // (default: true)
+	scripts: true/false, 	/// (default: true) package scripts
+	styles: true/false, 	/// (default: true)	package styles
+	uglify: true/false, 	/// (default: true) uglify packaged scripts
+	minifyCss: true/false, 	/// (default: true)	minify packaged styles
+	images: true/false, 	/// (default: true) package images
+	external: true/false 	/// (default: false) only scrape external resources
 };
 // minification opts
 var opts = {

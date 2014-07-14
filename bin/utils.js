@@ -1,4 +1,5 @@
 var fs = require('fs');
+var Transform = require('readable-stream/transform');
 
 function strip_( o ) {
 	var i, cur;
@@ -16,7 +17,7 @@ function bool( i ) {
 }
 
 function inFile( a ) {
-	return a._[0] || a.i || a.infile || a.e || a.external;
+	return a._[0] || a.i || a.infile;
 }
 
 function outFile( a ) {
@@ -39,11 +40,40 @@ function output( stdout, filename ) {
 	return stdout;
 }
 
+function help( a ) {
+	return a._[0] || a.h || a.help;
+}
+
+function lines( n ) {
+	var t = new Transform();
+	var count = 0;
+	n = n || 1;
+
+	t._transform = function( chunk, enc, next ) {
+		var len = chunk.length;
+		var i = 0;
+		for (; i < len; i++) {
+			if( chunk[i] === 10 && ++count === n ) break;
+		}
+		if( i > 0 ) {
+			this.push( chunk.slice(0, i + 1) );
+			this.push(null);
+			next();
+		} else {
+			next();
+		}
+	};
+
+	return t;
+}
+
 module.exports = {
 	strip_: strip_,
 	bool: bool,
 	inFile: inFile,
 	outFile: outFile,
 	input: input,
-	output: output
+	output: output,
+	help: help,
+	lines: lines
 };

@@ -7,18 +7,17 @@ var utils	= require('./utils.js');//strip_, bool, inFile, outFile, input, output
 
 var packagify = require('packagify-html');
 
-function usage() {
-	fs.createReadStream( __dirname + '/usage.txt' )
+function usage( full ) {
+	var file = fs.createReadStream( __dirname + '/usage.txt' );
+	(full ? file : file.pipe( utils.lines(2) ) )
 		.on('end', function() {process.exit(1);})
 		.pipe( process.stdout );
 }
 
 var args = subarg( process.argv.slice( 2 ) );
 
-console.log(  args );
-
-if( args._[0] === 'help' ||  args._[0] === 'h' || args.h || args.help ) {
-	return usage();
+if( utils.help( args ) ) {
+	return usage( args.help || utils.help( args ) === 'help' );
 }
 
 if( args.v || args.version ) {
@@ -28,20 +27,26 @@ if( args.v || args.version ) {
 var inputFile = utils.inFile( args );
 var outputFile = utils.outFile( args );
 
-if( !inputFile ) {
-	return usage();
+if( !inputFile && !(args.e || args.external) ) {
+	return usage( true );
+}
+
+if( args.d || args.default ) {
+	args.s = args.c = args.g = args.u = args.m = true;
 }
 
 var options = {
-    scripts: true,
-    styles: true,
-    uglify: true,
-    minifyCss: true,
-    images: true
+    scripts: 	utils.bool( args.s || args.scripts ),
+    styles: 	utils.bool( args.c || args.styles ),
+    images: 	utils.bool( args.g || args.images ),
+    uglify: 	utils.bool( args.u || args.uglify ) && utils.strip_(args.u || args.uglify),
+    minifyCss: 	utils.bool( args.m || args.minify ) && utils.strip_(args.m || args.minify),
+    external: 	utils.bool( args.e || args.external )
 };
 
 console.log( options );
 
-// utils.input( process.stdin, inputFile )
-// 	.pipe( packagify.pkg( inputFile ) )
-// 	.pipe( process.stdout );
+if( outputFile && process.stdin.isTTY ) {
+	packagify.pkgWrite( inputFile, options, outputFile );
+	return console.log( 'Writing file to : ' + outputFile );
+}
