@@ -130,3 +130,7 @@ var opts = {
 - Minification of the css is completed using [clean-css](https://www.npmjs.org/package/clean-css) and the options are available [here](https://www.npmjs.org/package/clean-css#how-to-use-clean-css-programmatically-)
 
 - Uglification of the JS uses [uglify-js](https://www.npmjs.org/package/uglify-js) and the options are [here](https://www.npmjs.org/package/uglify-js#compressor-options)
+
+### TODO
+
+- Improve logging, so that we produce a debug.log, since stdout could be used to make the destination file.

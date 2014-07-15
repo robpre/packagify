@@ -4,7 +4,8 @@
 var fs          = require('fs');
 var trumpet     = require('trumpet');
 var path        = require('path');
-var Stream      = require('readable-stream');
+var Transform   = require('readable-stream/transform');
+var PassThrough = require('readable-stream/passthrough');
 var CleanCSS    = require('clean-css');
 var UglifyJS    = require('uglify-js');
 var pipeline    = require('./lib/pipeline/pipeline.js');
@@ -17,18 +18,40 @@ var concat      = ArrProto.concat;
 
 // discern if file is on disk or on a server, and return a stream
 // representation in either case
-function resolveFile( uri, folder, ext ) {
-    var res;
-    if( uri.match( externalReg ) || ext ) {
+function resolveFile( uri, folder ) {
+    var p = new PassThrough();
+
+    var resource;
+
+    if( uri.match( externalReg ) ) {
         uri = uri.replace(/^\/\//, 'http://');
-        return request( uri );
+        resource = request({ 
+            uri: uri,
+            gzip: true
+        });
     } else {
-        return fs.createReadStream( path.resolve( process.cwd(), folder, uri ) );
+        // we don't know the host! so urls starting with / are meaningless!
+        if( uri.match(/^\//) ) {
+            // TODO: add debug tools to dump this data.
+            // as a warning.
+        }
+        // replace the first slash to the path can be correctly found
+        uri = uri.replace(/^\//, '');
+        resource = fs.createReadStream( path.resolve( process.cwd(), folder, uri ) );
     }
+
+    resource
+    .on('error', function() {
+        // TODO: add debug tools to dump this data.
+        p.end('/*RESOURCE NOT FOUND : ' + uri + ' */');
+    })
+    .on('end', p.end.bind(p));
+
+    return resource.pipe(p, {end: false});
 }
 
 function base64() {
-    var t = new Stream.Transform();
+    var t = new Transform();
     var buf = new Buffer(0);
 
     t._transform = function( buffer, enc, next ) {
@@ -66,7 +89,7 @@ function mini( type, opts ) {
     };
 
     // some resources can get data in multiple chunks
-    var transform = new Stream.Transform();
+    var transform = new Transform();
 
     transform._transform = function( chunk, enc, next ) {
         data += chunk.toString();
@@ -78,10 +101,20 @@ function mini( type, opts ) {
     return transform;
 }
 
+/**
+ * styles function
+ *
+ * returns a stream which will parse for link tag and fetch styles from link href
+ */
 function styles( dir, opts ) {
     var tr = trumpet();
 
     tr.selectAll('link[href]', function( link ) {
+
+        if( link.getAttribute('packagify-ignore') ) {
+            link.removeAttribute('packagify-ignore');
+            return;
+        }
 
         var href = link.getAttribute('href');
         var type = link.getAttribute('type');
@@ -112,6 +145,12 @@ function scripts( dir, opts ) {
     var tr = trumpet();
 
     tr.selectAll('script[type="text/javascript"][src]', function( script ) {
+
+        if( script.getAttribute('packagify-ignore') ) {
+            script.removeAttribute('packagify-ignore');
+            return;
+        }
+
         var src = script.getAttribute('src');
             
             script.removeAttribute( 'src' );
@@ -129,6 +168,12 @@ function images( dir ) {
     var tr = trumpet();
 
     tr.selectAll('img[src]', function( img ) {
+
+        if( img.getAttribute('packagify-ignore') ) {
+            img.removeAttribute('packagify-ignore');
+            return;
+        }
+
         var imgSrc = img.getAttribute('src');
 
         var file = resolveFile( imgSrc, dir );
@@ -180,7 +225,7 @@ var defaultOptions = {
     uglify: true,
     minifyCss: true,
     images: true,
-    external: false
+    external: true
 };
 
 var packagify = {
@@ -193,15 +238,15 @@ var packagify = {
         var parse = [];
 
         if( opts.scripts ) {
-            parse.push( scripts( folder, opts.uglify, opts.external ) );
+            parse.push( scripts( folder, opts.uglify) );
         }
         
         if( opts.styles ) {
-            parse.push( styles( folder, opts.minifyCss, opts.external ) );
+            parse.push( styles( folder, opts.minifyCss ) );
         }
 
         if( opts.images ) {
-            parse.push( images( folder ), opts.external );
+            parse.push( images( folder ) );
         }
 
         return pipeline( parse );
@@ -209,11 +254,6 @@ var packagify = {
 
     pkgFile: function( file, opts ) {
         var con = fs.createReadStream( file );
-
-        con.on('error', function( err ) {
-            console.error(err);
-            process.exit( 1 );
-        });
 
         return con.pipe( this.pkg( file, opts ) );
     },

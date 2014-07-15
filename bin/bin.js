@@ -3,7 +3,7 @@
 var subarg 	= require('subarg');
 var fs		= require('fs');
 var path 	= require('path');
-var utils	= require('./utils.js');//strip_, bool, inFile, outFile, input, output
+var utils	= require('./utils.js');//strip_, bool, inFile, outFile, input, help, lines
 
 var packagify = require('packagify-html');
 
@@ -25,7 +25,7 @@ if( args.v || args.version ) {
 }
 
 var inputFile = utils.inFile( args );
-var outputFile = utils.outFile( args );
+var outputFile = utils.outFile( args ) && path.resolve( process.cwd(), utils.outFile( args ) );
 
 if( !inputFile && !(args.e || args.external) ) {
 	return usage( true );
@@ -44,9 +44,20 @@ var options = {
     external: 	utils.bool( args.e || args.external )
 };
 
-console.log( options );
-
-if( outputFile && process.stdin.isTTY ) {
+if( outputFile && process.stdout.isTTY && process.stdin.isTTY ) {
 	packagify.pkgWrite( inputFile, options, outputFile );
-	return console.log( 'Writing file to : ' + outputFile );
+	return console.log( 'Writing file to: ' + outputFile );
+}
+
+if( !process.stdout.isTTY || !outputFile ) {
+	if( !process.stdin.isTTY ) {
+		return process.stdin.pipe( packagify.pkg( inputFile, options ) ).pipe( process.stdout );
+	}
+
+	if( !outputFile ) {
+		return packagify.pkgFile( inputFile, options ).pipe( process.stdout );
+	} else {
+		packagify.pkgFile( inputFile, options ).pipe( fs.createWriteStream( outputFile ) );
+		return console.log( 'Writing file to: ' + outputFile );
+	}
 }

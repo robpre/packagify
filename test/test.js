@@ -2,4 +2,6 @@
 
 var packageHtml = require('../');
 
-packageHtml.pkgFile(__dirname + '/index.html').pipe( process.stdout );
+var args = require('subarg')( process.argv.slice( 2 ) );
+
+packageHtml.pkgFile(__dirname + ( args.bad ? '/bad.html' : '/index.html')).pipe( process.stdout );

@@ -32,16 +32,8 @@ function input( stdin, filename ) {
 	}
 }
 
-function output( stdout, filename ) {
-	if( filename ) {
-		return fs.createWriteStream( filename );
-	}
-
-	return stdout;
-}
-
 function help( a ) {
-	return a._[0] || a.h || a.help;
+	return ((a._[0] === 'h' || a._[0] === 'help') && a._[0]) || a.h || a.help;
 }
 
 function lines( n ) {
@@ -73,7 +65,6 @@ module.exports = {
 	inFile: inFile,
 	outFile: outFile,
 	input: input,
-	output: output,
 	help: help,
 	lines: lines
 };
