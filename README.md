@@ -91,12 +91,12 @@ var server = require('http').createServer(function( req, res ) {
 
 ```
 
-## coming soon: from the terminal
+## from the terminal
 
 ```bash
-cat input.html | ./node_modules/.bin/packigify-html > output.html
+cat input.html | packagify > output.html
 
-packagify-html -i input.html -o output.html
+packagify input.html -scgum
 ```
 
 # options

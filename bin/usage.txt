@@ -2,15 +2,15 @@ Usage: packagify [-s] [-c] [-g] [-d] [-e] [-u [OPTIONS]] [-m [OPTIONS]] [-o OUTP
 Packagify HTML into a single http request by inlining all the linked assets
 Using INPUTFILE or standard input and writing to OUTPUTFILE or standard out
 
-	-d, --default			Trigger default behaviour ( the same as -scgum )
+	-d, --default           Trigger default behaviour ( the same as -scgum )
 
-	-s, --scripts			Scrape javascript resources and insert into tag
-	-c, --styles			Grab style sheets from link tags and insert into style tag
-	-g, --images			Base64 encode images
-	-u, --uglify [OPTIONS]	Uglify javascript
-	-m, --minify [OPTIONS]	Minify styles
-	-o, --outfile 			Write to file destination [BROKEN]
-	-e, --external 			Force external resource gathering, to skip providing input file location
+	-s, --scripts           Scrape javascript resources and insert into tag
+	-c, --styles            Grab style sheets from link tags and insert into style tag
+	-g, --images            Base64 encode images
+	-u, --uglify [OPTIONS]  Uglify javascript
+	-m, --minify [OPTIONS]  Minify styles
+	-o, --outfile           Write to file destination [BROKEN]
+	-e, --external          Force external resource gathering, to skip providing input file location
 
 [OPTIONS] take the form [--option value --otheroption]
 The "option" passed will have the value "value" and the "otheroption" will be true
