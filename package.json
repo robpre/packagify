@@ -1,6 +1,6 @@
 {
   "name": "packagify-html",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Packagify your html!",
   "homepage": "http://github.com/RpprRoger/packagify",
   "main": "index.js",
