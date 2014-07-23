@@ -57,12 +57,18 @@ fs.writeFile( file, JSON.stringify( pkg, null, '  '), function( err ) {
         log( stdout );
         console.log('commited and tagged version ' + version.join('.'));
 
-        npm.publish('./', function( err ) {
+        npm.load(pkg, function( err ) {
             if( err ) {
-                log.apply(null, arguments);
                 return console.log( err );
             }
-            console.log('published!');
+            npm.commands.publish(['./'], function( err, data ) {
+                if( err ) {
+                    log.apply(null, arguments);
+                    return console.log( err );
+                }
+                console.log('published!');
+                log( data );
+            });
         });
     });
     
