@@ -54,16 +54,16 @@ fs.writeFile( file, JSON.stringify( pkg, null, '  '), function( err ) {
             log( stderr );
             return console.error( err );
         }
-        // log( stdout );
-        // console.log('commited and tagged version ' + version.join('.'));
+        log( stdout );
+        console.log('commited and tagged version ' + version.join('.'));
 
-        // npm.publish('./', function( err ) {
-        //     if( err ) {
-        //         log.apply(null, arguments);
-        //         return console.log( err );
-        //     }
-        //     console.log('published!');
-        // });
+        npm.publish('./', function( err ) {
+            if( err ) {
+                log.apply(null, arguments);
+                return console.log( err );
+            }
+            console.log('published!');
+        });
     });
     
 });
