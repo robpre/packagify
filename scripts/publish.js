@@ -4,6 +4,7 @@ var exec        = require('child_process').exec;
 var subarg      = require('subarg');
 var fs          = require('fs');
 var pkg         = require('../package.json');
+var npm         = require('npm');
 
 var args = subarg( process.argv.slice( 2 ) );
 var bumpType = process.env.npm_config_type;
@@ -48,14 +49,21 @@ fs.writeFile( file, JSON.stringify( pkg, null, '  '), function( err ) {
 
     log('file saved!: ' + file);
 
-    var child = exec('git status'/*'git commit -am "Release version ' + version.join('.') + '" && git tag'*/, function( err, stdout, stderr ) {
+    exec('git commit -am "Release version ' + version.join('.') + '" && git tag ' + version.join('.') + ' && git push && git push --tags', function( err, stdout, stderr ) {
         if( err ) {
             log( stderr );
             return console.error( err );
         }
-        log( stdout );
+        // log( stdout );
+        // console.log('commited and tagged version ' + version.join('.'));
 
-        
+        // npm.publish('./', function( err ) {
+        //     if( err ) {
+        //         log.apply(null, arguments);
+        //         return console.log( err );
+        //     }
+        //     console.log('published!');
+        // });
     });
     
 });
